@@ -1,5 +1,5 @@
 
 window.CALEB_CONFIG = {
-  SUPABASE_URL: "COLE_AQUI_A_PROJECT_URL",
-  SUPABASE_ANON_KEY: "COLE_AQUI_A_CHAVE_PUBLICA"
+  SUPABASE_URL: "https://kzqamhfezfxcwpufwmsl.supabase.co/rest/v1/",
+  SUPABASE_ANON_KEY: "sb_publishable_MeeOTjtXSc0lOU_Q-vLXuQ_-3TwXYRn"
 };
