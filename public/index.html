@@ -1,53 +1,292 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Caleb Injeção Eletrônica</title>
-<meta name="description" content="Peças e soluções em injeção eletrônica. Compre com segurança.">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<header class="top">
- <a class="brand" href="#">
-  <img src="download.jpg" alt="Logo Caleb Injeção Eletrônica" style="height:70px;width:auto;max-width:100%;object-fit:contain;">
-</a>
-  <nav><a href="#produtos">Produtos</a><a href="#contato">Contato</a><button id="cartOpen" class="cart">Carrinho <b id="cartCount">0</b></button></nav>
-</header>
-<section class="hero">
-  <div class="hero-copy"><p class="eyebrow">PEÇAS • TECNOLOGIA • CONFIANÇA</p>
-  <h1>Qualidade e confiança para o seu veículo.</h1>
-  <p>Encontre produtos para injeção eletrônica com atendimento direto e compra simples.</p>
-  <a class="btn" href="#produtos">Ver produtos</a></div>
-  <div class="hero-art"><div class="ring"></div><div class="chip">CE<span>CALEB</span></div><p>INJEÇÃO ELETRÔNICA</p></div>
-</section>
-<main>
-<section id="produtos" class="section">
-  <div class="section-title"><div><p class="eyebrow">NOSSA LOJA</p><h2>Produtos disponíveis</h2></div><input id="search" placeholder="Buscar produto..."></div>
-  <div id="productGrid" class="grid"><p class="muted">Carregando produtos...</p></div>
-</section>
-<section id="contato" class="contact"><div><p class="eyebrow">PRECISA DE AJUDA?</p><h2>Fale com a Caleb</h2><p>Ficou com dúvida sobre uma peça ou aplicação? Fale com nossa equipe.</p></div><a class="btn light" href="https://wa.me/5581988081514" target="_blank" rel="noopener">Conversar no WhatsApp</a></section>
-</main>
-<footer>© <span id="year"></span> Caleb Injeção Eletrônica. Todos os direitos reservados.</footer>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<aside id="cartDrawer" class="drawer" aria-hidden="true">
-  <div class="drawer-head"><h2>Seu carrinho</h2><button id="cartClose" class="icon-btn" aria-label="Fechar">×</button></div>
-  <div id="cartItems"></div>
-  <div class="cart-total"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div>
-  <form id="checkoutForm" class="checkout">
-    <h3>Finalizar pedido</h3>
-    <input name="name" placeholder="Seu nome" required>
-    <input name="email" type="email" placeholder="Seu e-mail" required>
-    <input name="phone" placeholder="WhatsApp com DDD" required>
-    <textarea name="address" placeholder="Endereço para entrega/retirada (opcional)"></textarea>
-    <button class="btn full" type="submit">Gerar Pix e finalizar</button>
-    <small>O QR Code será gerado após a configuração da integração de pagamentos.</small>
-  </form>
-</aside>
-<div id="overlay" class="overlay"></div>
-<div id="pixModal" class="modal" aria-hidden="true">
-  <div class="modal-card"><button id="pixClose" class="icon-btn close">×</button><p class="eyebrow">PAGAMENTO PIX</p><h2>Finalize seu pagamento</h2>
-  <div id="pixContent"><p>Preparando cobrança...</p></div>
-  <p id="paymentStatus" class="status">Aguardando pagamento...</p></div>
-</div>
-<script src="config.js"></script><script type="module" src="store.js"></script>
-</body></html>
+  <title>Caleb Injeção Eletrônica</title>
+  <meta name="description" content="Peças e soluções em injeção eletrônica. Compre com segurança.">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --ink: #163b68;
+      --cream: #ffffff;
+      --accent: #1675d1;
+      --dark: #0d2d50;
+    }
+
+    body {
+      background: #ffffff;
+      color: #163b68;
+    }
+
+    header.top {
+      background: #ffffff !important;
+      color: #163b68 !important;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      padding: 15px 5%;
+    }
+
+    header.top .brand {
+      display: inline-flex !important;
+      align-items: center;
+      text-decoration: none;
+      background: transparent !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+    header.top .brand img {
+      display: block !important;
+      width: auto !important;
+      height: 90px !important;
+      max-width: 250px !important;
+      object-fit: contain !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+    header.top nav a {
+      color: #163b68 !important;
+    }
+
+    .btn {
+      background: #1675d1;
+      color: #ffffff;
+    }
+
+    .hero {
+      background: #f0f7ff;
+      color: #163b68;
+    }
+
+    .hero-art {
+      background: #e5f2ff;
+    }
+
+    footer {
+      background: #ffffff;
+      color: #163b68;
+    }
+
+    @media (max-width: 600px) {
+      header.top .brand img {
+        height: 70px !important;
+        max-width: 200px !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- CABEÇALHO COM A LOGO ORIGINAL -->
+  <header class="top">
+    <a class="brand" href="#">
+      <img
+        src="/download.jpg"
+        alt="Caleb Injeção Eletrônica"
+        width="250"
+        height="90"
+      >
+    </a>
+
+    <nav>
+      <a href="#produtos">Produtos</a>
+      <a href="#contato">Contato</a>
+      <button id="cartOpen" class="cart" type="button">
+        Carrinho <b id="cartCount">0</b>
+      </button>
+    </nav>
+  </header>
+
+  <!-- APRESENTAÇÃO -->
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">PEÇAS • TECNOLOGIA • CONFIANÇA</p>
+
+      <h1>Qualidade e confiança para o seu veículo.</h1>
+
+      <p>
+        Encontre produtos para injeção eletrônica
+        com atendimento direto e compra simples.
+      </p>
+
+      <a class="btn" href="#produtos">Ver produtos</a>
+    </div>
+
+    <div class="hero-art">
+      <div class="ring"></div>
+      <div class="chip">
+        CE
+        <span>CALEB</span>
+      </div>
+      <p>INJEÇÃO ELETRÔNICA</p>
+    </div>
+  </section>
+
+  <main>
+
+    <!-- PRODUTOS -->
+    <section id="produtos" class="section">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">NOSSA LOJA</p>
+          <h2>Produtos disponíveis</h2>
+        </div>
+
+        <input
+          id="search"
+          type="search"
+          placeholder="Buscar produto..."
+        >
+      </div>
+
+      <div id="productGrid" class="grid">
+        <p class="muted">Carregando produtos...</p>
+      </div>
+    </section>
+
+    <!-- CONTATO -->
+    <section id="contato" class="contact">
+      <div>
+        <p class="eyebrow">PRECISA DE AJUDA?</p>
+        <h2>Fale com a Caleb</h2>
+
+        <p>
+          Ficou com dúvida sobre uma peça ou aplicação?
+          Fale com nossa equipe.
+        </p>
+      </div>
+
+      <a
+        class="btn light"
+        href="https://wa.me/5581988081514"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Conversar no WhatsApp
+      </a>
+    </section>
+
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer>
+    © <span id="year"></span>
+    Caleb Injeção Eletrônica.
+    Todos os direitos reservados.
+  </footer>
+
+  <!-- CARRINHO -->
+  <aside
+    id="cartDrawer"
+    class="drawer"
+    aria-hidden="true"
+  >
+    <div class="drawer-head">
+      <h2>Seu carrinho</h2>
+
+      <button
+        id="cartClose"
+        class="icon-btn"
+        type="button"
+        aria-label="Fechar carrinho"
+      >
+        ×
+      </button>
+    </div>
+
+    <div id="cartItems"></div>
+
+    <div class="cart-total">
+      <span>Total</span>
+      <strong id="cartTotal">R$ 0,00</strong>
+    </div>
+
+    <!-- FINALIZAÇÃO -->
+    <form id="checkoutForm" class="checkout">
+      <h3>Finalizar pedido</h3>
+
+      <input
+        name="name"
+        placeholder="Seu nome"
+        required
+      >
+
+      <input
+        name="email"
+        type="email"
+        placeholder="Seu e-mail"
+        required
+      >
+
+      <input
+        name="phone"
+        placeholder="WhatsApp com DDD"
+        required
+      >
+
+      <textarea
+        name="address"
+        placeholder="Endereço para entrega/retirada (opcional)"
+      ></textarea>
+
+      <button class="btn full" type="submit">
+        Gerar Pix e finalizar
+      </button>
+
+      <small>
+        O QR Code será gerado após a configuração
+        da integração de pagamentos.
+      </small>
+    </form>
+  </aside>
+
+  <div id="overlay" class="overlay"></div>
+
+  <!-- PAGAMENTO PIX -->
+  <div
+    id="pixModal"
+    class="modal"
+    aria-hidden="true"
+  >
+    <div class="modal-card">
+
+      <button
+        id="pixClose"
+        class="icon-btn close"
+        type="button"
+        aria-label="Fechar pagamento"
+      >
+        ×
+      </button>
+
+      <p class="eyebrow">PAGAMENTO PIX</p>
+
+      <h2>Finalize seu pagamento</h2>
+
+      <div id="pixContent">
+        <p>Preparando cobrança...</p>
+      </div>
+
+      <p id="paymentStatus" class="status">
+        Aguardando pagamento...
+      </p>
+
+    </div>
+  </div>
+
+  <!-- SCRIPTS ORIGINAIS DA LOJA -->
+  <script src="config.js"></script>
+  <script type="module" src="store.js"></script>
+
+</body>
+</html>
