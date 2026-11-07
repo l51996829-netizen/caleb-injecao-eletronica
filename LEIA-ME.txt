@@ -1,0 +1,70 @@
+CALEB INJEÇÃO ELETRÔNICA — PROJETO BASE PARA NETLIFY + SUPABASE + ASAAS
+=======================================================================
+
+O que já está incluído
+- Loja de clientes responsiva, catálogo, pesquisa, carrinho e formulário de checkout.
+- Painel /admin.html para login, cadastro, ativação e exclusão de produtos e consulta de pedidos.
+- Função de servidor para validar estoque e preço no banco, criar cobrança Pix Asaas e obter QR Code + Pix Copia e Cola.
+- Webhook Asaas que muda o pedido para PAGO após PAYMENT_RECEIVED/PAYMENT_CONFIRMED.
+- Consulta privada do status do pedido com token aleatório, sem expor dados pessoais do comprador.
+- Contato WhatsApp configurado: (81) 98808-1514.
+
+IMPORTANTE
+Este pacote é a estrutura de integração, não uma loja já publicada nem uma integração ativada. Não é possível gerar cobranças reais até que o proprietário crie as contas, configure as chaves e publique o projeto. Nunca envie sua senha ou API Key pelo chat. Não use dados de produção antes de testar no Sandbox.
+
+PASSO 1 — Criar projeto Supabase
+1. Acesse https://supabase.com e crie um projeto.
+2. No painel, abra SQL Editor e execute todo o arquivo supabase/schema.sql.
+3. Em Authentication > Users, crie o usuário administrador com seu e-mail e senha.
+4. Copie o UUID desse usuário.
+5. No SQL Editor, execute: insert into public.admins(user_id) values ('COLE-AQUI-O-UUID');
+6. Em Project Settings > API, copie Project URL e anon/public key.
+7. Edite public/config.js e preencha SUPABASE_URL e SUPABASE_ANON_KEY.
+   A anon key é pública; NÃO coloque service_role no arquivo config.js.
+
+PASSO 2 — Criar conta Asaas Sandbox
+1. Acesse https://sandbox.asaas.com e crie a conta de testes.
+2. Gere uma API Key no ambiente Sandbox.
+3. Guarde a chave em local seguro. Não coloque no HTML, JavaScript público ou GitHub.
+4. O ambiente Sandbox serve para testes fictícios; não recebe dinheiro real.
+
+PASSO 3 — Publicar na Netlify
+1. Coloque a pasta do projeto em um repositório GitHub privado (ou conecte pelo fluxo de deploy da Netlify).
+2. Na Netlify, escolha Add new site > Import an existing project.
+3. Build command: deixe vazio. Publish directory: public.
+4. Functions directory: netlify/functions (já definido no netlify.toml).
+5. Em Site configuration > Environment variables, crie:
+   SUPABASE_URL = URL do projeto Supabase
+   SUPABASE_SERVICE_ROLE_KEY = chave service_role do Supabase (SOMENTE servidor)
+   ASAAS_API_KEY = chave API do Asaas Sandbox
+   ASAAS_ENV = sandbox
+   ASAAS_WEBHOOK_TOKEN = uma senha longa e aleatória criada por você
+6. Faça redeploy depois de salvar as variáveis.
+
+PASSO 4 — Configurar Webhook no Asaas Sandbox
+1. No painel Asaas Sandbox, vá para Integrações / Webhooks e crie um webhook.
+2. URL: https://SEU-SITE.netlify.app/.netlify/functions/asaas-webhook
+3. Eventos: PAYMENT_RECEIVED, PAYMENT_CONFIRMED, PAYMENT_OVERDUE, PAYMENT_DELETED, PAYMENT_REFUNDED.
+4. Configure o token de autenticação do webhook com exatamente o valor de ASAAS_WEBHOOK_TOKEN.
+5. Salve e faça uma compra de teste.
+
+PASSO 5 — Testes antes de vender
+- Cadastre um produto no painel /admin.html.
+- Faça uma compra de teste com dados fictícios no Sandbox.
+- Verifique se o QR Code e o Pix Copia e Cola aparecem.
+- Simule/execute o pagamento de teste no ambiente Sandbox e confirme se o pedido muda para PAGO.
+- Só depois de validar tudo, crie/ative conta de produção e troque ASAAS_API_KEY pela chave de produção e ASAAS_ENV para production.
+- Configure o webhook também no ambiente de produção.
+
+ENDEREÇOS
+Loja: https://SEU-SITE.netlify.app/
+Admin: https://SEU-SITE.netlify.app/admin.html
+Webhook: https://SEU-SITE.netlify.app/.netlify/functions/asaas-webhook
+
+OBSERVAÇÕES TÉCNICAS
+- A API Asaas é chamada apenas por Netlify Functions; a chave secreta não é exposta no navegador.
+- Os preços e estoque são relidos no banco no servidor para impedir que o cliente altere o total no navegador.
+- O status do pedido é atualizado pelo webhook do Asaas, não por uma confirmação visual do cliente.
+- O exemplo cria um cliente Asaas por pedido. Para loja em produção, é recomendável evoluir para reutilizar clientes, reservar/baixar estoque de forma transacional, validar duplicidade de eventos e implementar política de privacidade/termos.
+- A interface de upload de imagem ainda não foi incluída: por enquanto, o painel recebe uma URL pública de imagem.
+- O projeto começa sem produtos reais. Cadastre os produtos e fotos pelo painel depois de configurar o banco.
