@@ -1,9 +1,472 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin | Caleb Injeção Eletrônica</title><link rel="stylesheet" href="styles.css"><style>
-.admin-wrap{max-width:1100px;margin:45px auto;padding:0 20px}.admin-card{background:var(--panel);border:1px solid var(--line);padding:22px;border-radius:12px;margin:20px 0}.admin-form{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.admin-form input,.admin-form textarea{padding:12px;background:#0b1016;border:1px solid var(--line);color:white;border-radius:6px}.admin-form textarea{grid-column:1/-1}.admin-form button{grid-column:1/-1}.admin-list{display:grid;gap:10px}.admin-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:13px;border-bottom:1px solid var(--line)}.admin-row small{display:block;color:var(--muted)}.danger{background:#7d2929;color:white;border:0;border-radius:6px;padding:10px}.login{max-width:400px;margin:80px auto;padding:24px;background:var(--panel);border:1px solid var(--line);border-radius:12px}.login input{width:100%;padding:12px;margin:8px 0;background:#0b1016;border:1px solid var(--line);color:white}.hidden{display:none}@media(max-width:650px){.admin-form{grid-template-columns:1fr}.admin-row{grid-template-columns:1fr auto}.admin-row button:last-child{grid-column:2}}
-</style></head><body><header class="top"><a class="brand" href="index.html"><span class="mark">C</span><span>CALEB <small>PAINEL ADMINISTRATIVO</small></span></a><a href="index.html">Ver loja</a></header>
-<section id="login" class="login"><h2>Entrar no painel</h2><p class="muted">Use o usuário administrador cadastrado no Supabase.</p><form id="loginForm"><input name="email" type="email" placeholder="E-mail" required><input name="password" type="password" placeholder="Senha" required><button class="btn full">Entrar</button></form><p id="loginMsg" class="muted"></p></section>
-<main id="app" class="admin-wrap hidden"><div class="section-title"><div><p class="eyebrow">ADMINISTRAÇÃO</p><h2>Gerenciar a loja</h2></div><button id="logout" class="btn">Sair</button></div>
-<section class="admin-card"><h3>Cadastrar produto</h3><form id="productForm" class="admin-form"><input name="name" placeholder="Nome do produto" required><input name="price" type="number" min="0.01" step="0.01" placeholder="Preço (R$)" required><input name="stock" type="number" min="0" step="1" placeholder="Estoque" required><input name="image_url" type="url" placeholder="URL da foto (opcional)"><textarea name="description" placeholder="Descrição do produto"></textarea><button class="btn">Adicionar produto</button></form></section>
-<section class="admin-card"><h3>Produtos cadastrados</h3><div id="products" class="admin-list"></div></section>
-<section class="admin-card"><h3>Pedidos</h3><p class="muted">Os pedidos e seus status são registrados no banco. O status muda para PAGO após confirmação do Asaas.</p><div id="orders" class="admin-list"></div></section>
-</main><script src="config.js"></script><script type="module" src="admin.js"></script></body></html>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Administrador | Caleb Injeção Eletrônica</title>
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+:root {
+  --admin-blue: #1675d1;
+  --admin-dark: #10365f;
+  --admin-bg: #f3f8ff;
+  --admin-white: #ffffff;
+  --admin-border: #dce8f5;
+  --admin-muted: #64748b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--admin-bg) !important;
+  color: var(--admin-dark) !important;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* CABEÇALHO */
+
+header.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 15px 6%;
+  background: white !important;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+header.top .brand {
+  display: flex;
+  align-items: center;
+  background: transparent !important;
+}
+
+header.top .brand img {
+  width: 200px !important;
+  height: auto !important;
+  max-width: 100%;
+  display: block !important;
+  object-fit: contain;
+}
+
+.store-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: #eaf4ff;
+  color: var(--admin-blue) !important;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+/* LOGIN */
+
+.login {
+  max-width: 430px;
+  margin: 70px auto;
+  padding: 35px;
+  background: white !important;
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+  box-shadow: 0 15px 40px rgba(16,54,95,.08);
+}
+
+.login h2 {
+  margin-top: 0;
+  color: var(--admin-dark);
+  font-size: 28px;
+}
+
+.login p {
+  line-height: 1.6;
+}
+
+.login input {
+  display: block;
+  width: 100%;
+  padding: 15px;
+  margin: 12px 0;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: white !important;
+  color: var(--admin-dark) !important;
+  font-size: 15px;
+}
+
+.login input:focus {
+  outline: 2px solid #a9d4ff;
+}
+
+.btn {
+  display: inline-block;
+  border: 0;
+  padding: 14px 22px;
+  border-radius: 10px;
+  background: var(--admin-blue) !important;
+  color: white !important;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #095eae !important;
+}
+
+.btn.full {
+  width: 100%;
+}
+
+/* ÁREA ADMINISTRATIVA */
+
+.admin-wrap {
+  max-width: 1150px;
+  margin: 45px auto;
+  padding: 0 20px;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.section-title h2 {
+  margin: 8px 0;
+  font-size: 34px;
+  color: var(--admin-dark);
+}
+
+.eyebrow {
+  color: var(--admin-blue) !important;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.admin-card {
+  margin: 25px 0;
+  padding: 28px;
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+  background: white !important;
+  box-shadow: 0 8px 25px rgba(16,54,95,.05);
+}
+
+.admin-card h3 {
+  margin-top: 0;
+  margin-bottom: 22px;
+  font-size: 23px;
+  color: var(--admin-dark);
+}
+
+/* FORMULÁRIO DE PRODUTOS */
+
+.admin-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+}
+
+.admin-form input,
+.admin-form textarea {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: #ffffff !important;
+  color: var(--admin-dark) !important;
+  font-size: 15px;
+  font-family: inherit;
+}
+
+.admin-form input:focus,
+.admin-form textarea:focus {
+  outline: 2px solid #a9d4ff;
+}
+
+.admin-form textarea {
+  grid-column: 1 / -1;
+  min-height: 110px;
+  resize: vertical;
+}
+
+.admin-form button {
+  grid-column: 1 / -1;
+}
+
+/* LISTA DE PRODUTOS E PEDIDOS */
+
+.admin-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.admin-row strong {
+  color: var(--admin-dark);
+}
+
+.admin-row small {
+  display: block;
+  margin-top: 6px;
+  color: var(--admin-muted);
+}
+
+.admin-row button {
+  border-radius: 9px;
+  padding: 10px 15px;
+  cursor: pointer;
+}
+
+.danger {
+  border: 0;
+  background: #dc3545 !important;
+  color: white !important;
+}
+
+.danger:hover {
+  background: #b92332 !important;
+}
+
+.muted {
+  color: var(--admin-muted) !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* CELULAR */
+
+@media (max-width: 650px) {
+  header.top {
+    justify-content: center;
+    text-align: center;
+  }
+
+  header.top .brand img {
+    width: 175px !important;
+  }
+
+  .login {
+    margin: 35px 15px;
+    padding: 25px;
+  }
+
+  .admin-wrap {
+    margin: 30px auto;
+    padding: 0 15px;
+  }
+
+  .admin-card {
+    padding: 20px;
+  }
+
+  .admin-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .admin-row button:last-child {
+    grid-column: 2;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- CABEÇALHO -->
+
+<header class="top">
+
+  <a class="brand" href="index.html">
+    <img
+      src="/45e78704-eff8-431c-944a-457536da2b92.png"
+      alt="Caleb Injeção Eletrônica"
+    >
+  </a>
+
+  <a class="store-link" href="index.html">
+    Ver loja
+  </a>
+
+</header>
+
+<!-- LOGIN DO ADMINISTRADOR -->
+
+<section id="login" class="login">
+
+  <p class="eyebrow">ACESSO RESTRITO</p>
+
+  <h2>Entrar no painel</h2>
+
+  <p class="muted">
+    Entre com o e-mail e a senha do administrador
+    cadastrados no Supabase.
+  </p>
+
+  <form id="loginForm">
+
+    <input
+      name="email"
+      type="email"
+      placeholder="E-mail do administrador"
+      autocomplete="username"
+      required
+    >
+
+    <input
+      name="password"
+      type="password"
+      placeholder="Senha"
+      autocomplete="current-password"
+      required
+    >
+
+    <button class="btn full" type="submit">
+      Entrar no painel
+    </button>
+
+  </form>
+
+  <p id="loginMsg" class="muted"></p>
+
+</section>
+
+<!-- PAINEL PRINCIPAL -->
+
+<main id="app" class="admin-wrap hidden">
+
+  <div class="section-title">
+
+    <div>
+      <p class="eyebrow">ADMINISTRAÇÃO</p>
+      <h2>Gerenciar a loja</h2>
+      <p class="muted">
+        Controle os produtos, o estoque e os pedidos.
+      </p>
+    </div>
+
+    <button id="logout" class="btn" type="button">
+      Sair
+    </button>
+
+  </div>
+
+  <!-- CADASTRAR PRODUTOS -->
+
+  <section class="admin-card">
+
+    <h3>Cadastrar novo produto</h3>
+
+    <form id="productForm" class="admin-form">
+
+      <input
+        name="name"
+        type="text"
+        placeholder="Nome do produto"
+        required
+      >
+
+      <input
+        name="price"
+        type="number"
+        min="0.01"
+        step="0.01"
+        placeholder="Preço (R$)"
+        required
+      >
+
+      <input
+        name="stock"
+        type="number"
+        min="0"
+        step="1"
+        placeholder="Quantidade em estoque"
+        required
+      >
+
+      <input
+        name="image_url"
+        type="url"
+        placeholder="Link da foto do produto (opcional)"
+      >
+
+      <textarea
+        name="description"
+        placeholder="Descrição do produto"
+      ></textarea>
+
+      <button class="btn" type="submit">
+        Adicionar produto
+      </button>
+
+    </form>
+
+  </section>
+
+  <!-- PRODUTOS CADASTRADOS -->
+
+  <section class="admin-card">
+
+    <h3>Produtos cadastrados</h3>
+
+    <p class="muted">
+      Visualize os produtos e gerencie os itens da loja.
+    </p>
+
+    <div id="products" class="admin-list"></div>
+
+  </section>
+
+  <!-- PEDIDOS -->
+
+  <section class="admin-card">
+
+    <h3>Pedidos dos clientes</h3>
+
+    <p class="muted">
+      Acompanhe os pedidos registrados no sistema.
+      O status do pagamento depende da confirmação
+      do Asaas.
+    </p>
+
+    <div id="orders" class="admin-list"></div>
+
+  </section>
+
+</main>
+
+<!-- INTEGRAÇÃO SUPABASE -->
+
+<script src="config.js"></script>
+<script type="module" src="admin.js"></script>
+
+</body>
+</html>
