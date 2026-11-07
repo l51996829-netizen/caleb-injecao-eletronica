@@ -37,3 +37,14 @@ button, .btn, .button {
 a {
   color: #1675d1;
 }
+
+
+.brand img {
+  display: block !important;
+  height: 90px !important;
+  width: auto !important;
+  max-width: 250px !important;
+  object-fit: contain !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
