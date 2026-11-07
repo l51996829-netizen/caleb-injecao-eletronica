@@ -5,81 +5,357 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Caleb Injeção Eletrônica</title>
-  <meta name="description" content="Peças e soluções em injeção eletrônica. Compre com segurança.">
+  <title>Caleb Injeção Eletrônica | Loja Online</title>
+  <meta name="description" content="Peças e soluções em injeção eletrônica com qualidade, confiança e atendimento especializado.">
 
   <link rel="stylesheet" href="styles.css">
 
   <style>
     :root {
-      --ink: #163b68;
-      --cream: #ffffff;
-      --accent: #1675d1;
-      --dark: #0d2d50;
+      --azul: #1675d1;
+      --azul-escuro: #143c6c;
+      --fundo: #f2f8ff;
+      --branco: #ffffff;
     }
 
     body {
-      background: #ffffff;
-      color: #163b68;
+      margin: 0;
+      background: var(--branco);
+      color: var(--azul-escuro);
+      font-family: Arial, sans-serif;
     }
 
+    /* CABEÇALHO */
     header.top {
-      background: #ffffff !important;
-      color: #163b68 !important;
+      position: relative;
+      background: white !important;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 20px;
+      padding: 15px 6%;
+      min-height: 100px;
+      box-sizing: border-box;
       flex-wrap: wrap;
-      padding: 15px 5%;
     }
 
     header.top .brand {
-      display: inline-flex !important;
+      display: flex;
       align-items: center;
-      text-decoration: none;
       background: transparent !important;
-      opacity: 1 !important;
-      visibility: visible !important;
+      text-decoration: none;
     }
 
     header.top .brand img {
       display: block !important;
-      width: auto !important;
-      height: 90px !important;
-      max-width: 250px !important;
+      width: 220px !important;
+      height: auto !important;
+      max-width: 100% !important;
       object-fit: contain !important;
       opacity: 1 !important;
       visibility: visible !important;
     }
 
+    header.top nav {
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      flex-wrap: wrap;
+    }
+
     header.top nav a {
-      color: #163b68 !important;
+      color: var(--azul-escuro) !important;
+      text-decoration: none;
+      font-weight: bold;
     }
 
-    .btn {
-      background: #1675d1;
-      color: #ffffff;
+    .cart, .btn {
+      background: var(--azul) !important;
+      color: white !important;
+      border: 0;
+      padding: 14px 22px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      text-decoration: none;
+      display: inline-block;
     }
 
+    .cart b {
+      margin-left: 8px;
+    }
+
+    /* APRESENTAÇÃO */
     .hero {
-      background: #f0f7ff;
-      color: #163b68;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      align-items: center;
+      gap: 50px;
+      padding: 75px 7%;
+      background: linear-gradient(120deg, #ffffff, #e7f3ff);
+      min-height: 420px;
+    }
+
+    .hero-copy h1 {
+      font-size: clamp(34px, 4.5vw, 60px);
+      line-height: 1.12;
+      color: var(--azul-escuro);
+      margin: 15px 0;
+    }
+
+    .hero-copy > p:not(.eyebrow) {
+      color: #637c97;
+      font-size: 18px;
+      line-height: 1.7;
+      max-width: 540px;
+    }
+
+    .eyebrow {
+      color: var(--azul) !important;
+      font-weight: 800;
+      font-size: 12px;
+      letter-spacing: 3px;
     }
 
     .hero-art {
-      background: #e5f2ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 35px;
+      min-height: 300px;
+      background: white !important;
+      border: 1px solid #dbe9f7;
+      border-radius: 25px;
+      box-shadow: 0 15px 35px rgba(15, 60, 110, .12);
+      box-sizing: border-box;
+    }
+
+    .hero-art .hero-logo {
+      display: block !important;
+      width: 100% !important;
+      max-width: 480px !important;
+      height: auto !important;
+      object-fit: contain !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+    }
+
+    .section {
+      padding: 70px 7%;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .section-title h2 {
+      font-size: 32px;
+      color: var(--azul-escuro);
+    }
+
+    #search {
+      padding: 15px;
+      width: 300px;
+      max-width: 100%;
+      border: 1px solid #cddff0;
+      border-radius: 10px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 25px;
+    }
+
+    .muted {
+      color: #71859b;
+    }
+
+    .contact {
+      margin: 20px 7% 60px;
+      padding: 40px;
+      border-radius: 22px;
+      background: var(--azul-escuro);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 25px;
+    }
+
+    .contact h2 {
+      color: white;
+    }
+
+    .contact .light {
+      background: white !important;
+      color: var(--azul-escuro) !important;
     }
 
     footer {
-      background: #ffffff;
-      color: #163b68;
+      padding: 30px;
+      text-align: center;
+      background: white !important;
+      color: #71859b;
+      border-top: 1px solid #dce8f4;
     }
 
-    @media (max-width: 600px) {
+    /* CARRINHO */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 20, 45, .55);
+      display: none;
+      z-index: 90;
+    }
+
+    .overlay.open, .overlay.active, .overlay.show {
+      display: block;
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: min(440px, 100%);
+      height: 100dvh;
+      overflow-y: auto;
+      padding: 25px;
+      box-sizing: border-box;
+      background: white;
+      z-index: 100;
+      transform: translateX(105%);
+      transition: transform .3s ease;
+      box-shadow: -10px 0 35px rgba(0,0,0,.15);
+    }
+
+    .drawer.open, .drawer.active, .drawer.show {
+      transform: translateX(0);
+    }
+
+    .drawer-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .icon-btn {
+      border: 0;
+      background: #eaf4ff;
+      color: var(--azul-escuro);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .cart-total {
+      display: flex;
+      justify-content: space-between;
+      margin: 25px 0;
+      padding: 18px 0;
+      border-top: 1px solid #dce8f4;
+    }
+
+    .checkout {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .checkout input, .checkout textarea {
+      padding: 14px;
+      border: 1px solid #dce8f4;
+      border-radius: 10px;
+      font: inherit;
+    }
+
+    .checkout textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .btn.full {
+      width: 100%;
+    }
+
+    /* MODAL PIX */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 20, 45, .65);
+    }
+
+    .modal.open, .modal.active, .modal.show {
+      display: flex;
+    }
+
+    .modal-card {
+      position: relative;
+      width: min(460px, 100%);
+      max-height: 90dvh;
+      overflow-y: auto;
+      box-sizing: border-box;
+      background: white;
+      border-radius: 20px;
+      padding: 35px;
+      text-align: center;
+    }
+
+    .modal-card .close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+    }
+
+    #pixContent img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    @media (max-width: 760px) {
+      header.top {
+        justify-content: center;
+        text-align: center;
+      }
+
       header.top .brand img {
-        height: 70px !important;
-        max-width: 200px !important;
+        width: 180px !important;
+      }
+
+      header.top nav {
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding: 45px 6%;
+      }
+
+      .hero-art {
+        min-height: 220px;
+        padding: 20px;
+      }
+
+      .section {
+        padding: 45px 6%;
+      }
+
+      .contact {
+        margin: 15px 6% 45px;
+        padding: 28px;
       }
     }
   </style>
@@ -87,15 +363,10 @@
 
 <body>
 
-  <!-- CABEÇALHO COM A LOGO ORIGINAL -->
+  <!-- CABEÇALHO -->
   <header class="top">
     <a class="brand" href="#">
-      <img
-        src="/download.jpg"
-        alt="Caleb Injeção Eletrônica"
-        width="250"
-        height="90"
-      >
+      <img src="/download.jpg" alt="Logo Caleb Injeção Eletrônica">
     </a>
 
     <nav>
@@ -115,26 +386,26 @@
       <h1>Qualidade e confiança para o seu veículo.</h1>
 
       <p>
-        Encontre produtos para injeção eletrônica
-        com atendimento direto e compra simples.
+        Encontre peças e soluções em injeção eletrônica
+        com atendimento especializado, qualidade
+        e confiança.
       </p>
 
       <a class="btn" href="#produtos">Ver produtos</a>
     </div>
 
+    <!-- LOGO ORIGINAL GRANDE -->
     <div class="hero-art">
-      <div class="ring"></div>
-      <div class="chip">
-        CE
-        <span>CALEB</span>
-      </div>
-      <p>INJEÇÃO ELETRÔNICA</p>
+      <img
+        src="/download.jpg"
+        alt="Caleb Injeção Eletrônica"
+        class="hero-logo"
+      >
     </div>
   </section>
 
+  <!-- PRODUTOS -->
   <main>
-
-    <!-- PRODUTOS -->
     <section id="produtos" class="section">
       <div class="section-title">
         <div>
@@ -157,13 +428,9 @@
     <!-- CONTATO -->
     <section id="contato" class="contact">
       <div>
-        <p class="eyebrow">PRECISA DE AJUDA?</p>
-        <h2>Fale com a Caleb</h2>
-
-        <p>
-          Ficou com dúvida sobre uma peça ou aplicação?
-          Fale com nossa equipe.
-        </p>
+        <p class="eyebrow">FALE CONOSCO</p>
+        <h2>Precisa de alguma peça?</h2>
+        <p>Entre em contato com nossa equipe pelo WhatsApp.</p>
       </div>
 
       <a
@@ -175,33 +442,19 @@
         Conversar no WhatsApp
       </a>
     </section>
-
   </main>
 
   <!-- RODAPÉ -->
   <footer>
-    © <span id="year"></span>
-    Caleb Injeção Eletrônica.
+    © <span id="year"></span> Caleb Injeção Eletrônica.
     Todos os direitos reservados.
   </footer>
 
   <!-- CARRINHO -->
-  <aside
-    id="cartDrawer"
-    class="drawer"
-    aria-hidden="true"
-  >
+  <aside id="cartDrawer" class="drawer" aria-hidden="true">
     <div class="drawer-head">
-      <h2>Seu carrinho</h2>
-
-      <button
-        id="cartClose"
-        class="icon-btn"
-        type="button"
-        aria-label="Fechar carrinho"
-      >
-        ×
-      </button>
+      <h2>Meu carrinho</h2>
+      <button id="cartClose" class="icon-btn" type="button">×</button>
     </div>
 
     <div id="cartItems"></div>
@@ -211,82 +464,54 @@
       <strong id="cartTotal">R$ 0,00</strong>
     </div>
 
-    <!-- FINALIZAÇÃO -->
     <form id="checkoutForm" class="checkout">
-      <h3>Finalizar pedido</h3>
+      <h3>Finalizar compra</h3>
 
-      <input
-        name="name"
-        placeholder="Seu nome"
-        required
-      >
-
-      <input
-        name="email"
-        type="email"
-        placeholder="Seu e-mail"
-        required
-      >
-
-      <input
-        name="phone"
-        placeholder="WhatsApp com DDD"
-        required
-      >
+      <input name="name" placeholder="Nome completo" required>
+      <input name="email" type="email" placeholder="E-mail" required>
+      <input name="phone" placeholder="WhatsApp com DDD" required>
 
       <textarea
         name="address"
-        placeholder="Endereço para entrega/retirada (opcional)"
+        placeholder="Endereço de entrega ou retirada"
       ></textarea>
 
       <button class="btn full" type="submit">
         Gerar Pix e finalizar
       </button>
 
-      <small>
-        O QR Code será gerado após a configuração
-        da integração de pagamentos.
-      </small>
+      <small>Pagamento via Pix.</small>
     </form>
   </aside>
 
   <div id="overlay" class="overlay"></div>
 
   <!-- PAGAMENTO PIX -->
-  <div
-    id="pixModal"
-    class="modal"
-    aria-hidden="true"
-  >
+  <div id="pixModal" class="modal" aria-hidden="true">
     <div class="modal-card">
+      <button id="pixClose" class="icon-btn close" type="button">×</button>
 
-      <button
-        id="pixClose"
-        class="icon-btn close"
-        type="button"
-        aria-label="Fechar pagamento"
-      >
-        ×
-      </button>
-
-      <p class="eyebrow">PAGAMENTO PIX</p>
-
-      <h2>Finalize seu pagamento</h2>
+      <p class="eyebrow">PAGAMENTO SEGURO</p>
+      <h2>Pagamento via Pix</h2>
 
       <div id="pixContent">
-        <p>Preparando cobrança...</p>
+        <p>Preparando seu pagamento...</p>
       </div>
 
       <p id="paymentStatus" class="status">
         Aguardando pagamento...
       </p>
-
     </div>
   </div>
 
-  <!-- SCRIPTS ORIGINAIS DA LOJA -->
+  <!-- INTEGRAÇÃO DA LOJA -->
   <script src="config.js"></script>
   <script type="module" src="store.js"></script>
+
+  <script>
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+  </script>
 
 </body>
 </html>
