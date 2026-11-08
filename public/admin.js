@@ -3,20 +3,15 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const config = window.CALEB_CONFIG || {};
 
-const sb = (
-  config.SUPABASE_URL &&
+const sb = createClient(
+  config.SUPABASE_URL,
   config.SUPABASE_ANON_KEY
-)
-  ? createClient(
-      config.SUPABASE_URL,
-      config.SUPABASE_ANON_KEY
-    )
-  : null;
+);
 
 const $ = (id) => document.getElementById(id);
 
 const money = (value) =>
-  Number(value || 0).toLocaleString("pt-BR", {
+  Number(value).toLocaleString("pt-BR", {
     style: "currency",
     currency: "BRL"
   });
@@ -24,376 +19,278 @@ const money = (value) =>
 let user = null;
 let isAdmin = false;
 
-// PROTEÇÃO CONTRA HTML INJETADO
+const bucket = "product-images";
 
 function escapeHTML(value) {
-  return String(value ?? "").replace(
-    /[&<>"']/g,
-    (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;"
-    })[char]
-  );
+  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
 }
-
-// MENSAGENS
-
-function message(text) {
-  alert(text);
-}
-
-function loginMessage(text) {
-  $("loginMsg").textContent = text;
-}
-
-// VERIFICAR ADMINISTRADOR
 
 async function checkAdmin() {
-  if (!sb || !user) return false;
+  const { data, error } = await sb.rpc("is_caleb_admin");
 
-  const { data, error } = await sb
-    .from("admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  if (error) throw error;
 
-  if (error) {
-    console.error("Erro ao verificar administrador:", error);
-    return false;
-  }
-
-  return !!data;
+  return data === true;
 }
 
-// INICIAR PAINEL
-
-async function init() {
-  if (!sb) {
-    loginMessage(
-      "Configure o Supabase em config.js."
-    );
-    return;
-  }
-
-  const { data, error } = await sb.auth.getSession();
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  if (data.session?.user) {
-    user = data.session.user;
-    await show();
-  }
-}
-
-// MOSTRAR PAINEL
-
-async function show() {
+async function showPanel() {
   isAdmin = await checkAdmin();
 
   if (!isAdmin) {
-    $("login").classList.remove("hidden");
-    $("app").classList.add("hidden");
-
-    loginMessage(
-      "Esta conta não possui permissão de administrador."
-    );
+    await sb.auth.signOut();
+    user = null;
+    $("loginMsg").textContent =
+      "Esta conta não tem permissão de administrador.";
     return;
   }
 
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
 
-  await load();
+  await loadProducts();
+  await loadOrders();
 }
 
-// LOGIN
+async function init() {
+  try {
+    const { data, error } = await sb.auth.getSession();
+
+    if (error) throw error;
+
+    if (data.session) {
+      user = data.session.user;
+      await showPanel();
+    }
+  } catch (error) {
+    console.error(error);
+    $("loginMsg").textContent =
+      "Erro ao conectar ao Supabase: " + error.message;
+  }
+}
 
 $("loginForm").onsubmit = async (event) => {
   event.preventDefault();
 
-  if (!sb) {
-    loginMessage("Supabase não configurado.");
+  const form = event.currentTarget;
+  const fields = new FormData(form);
+
+  $("loginMsg").textContent = "Entrando...";
+
+  const { data, error } = await sb.auth.signInWithPassword({
+    email: fields.get("email"),
+    password: fields.get("password")
+  });
+
+  if (error) {
+    $("loginMsg").textContent = "E-mail ou senha inválidos.";
     return;
   }
 
-  const form = event.currentTarget;
-  const button = form.querySelector(
-    'button[type="submit"]'
-  );
-
-  const fields = new FormData(form);
-
-  button.disabled = true;
-  button.textContent = "Entrando...";
+  user = data.user;
 
   try {
-    const { data, error } =
-      await sb.auth.signInWithPassword({
-        email: fields.get("email"),
-        password: fields.get("password")
-      });
-
-    if (error) {
-      loginMessage("E-mail ou senha inválidos.");
-      return;
-    }
-
-    user = data.user;
-
-    await show();
+    await showPanel();
   } catch (error) {
-    console.error(error);
-    loginMessage(
-      "Não foi possível conectar ao Supabase."
-    );
-  } finally {
-    button.disabled = false;
-    button.textContent = "Entrar no painel";
+    $("loginMsg").textContent = error.message;
   }
 };
 
-// SAIR
-
 $("logout").onclick = async () => {
-  if (sb) {
-    await sb.auth.signOut();
-  }
-
-  user = null;
-  isAdmin = false;
-
+  await sb.auth.signOut();
   location.reload();
 };
 
-// CADASTRAR PRODUTO
+async function uploadPhoto(file) {
+  if (!file || file.size === 0) return null;
+
+  const types = {
+    "image/jpeg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp"
+  };
+
+  if (!types[file.type]) {
+    throw new Error("Escolha uma foto JPG, PNG ou WebP.");
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("A foto deve ter no máximo 5 MB.");
+  }
+
+  const path =
+    `${user.id}/${crypto.randomUUID()}.${types[file.type]}`;
+
+  const { error } = await sb.storage
+    .from(bucket)
+    .upload(path, file, {
+      contentType: file.type,
+      upsert: false
+    });
+
+  if (error) throw error;
+
+  const { data } = sb.storage
+    .from(bucket)
+    .getPublicUrl(path);
+
+  return {
+    url: data.publicUrl,
+    path
+  };
+}
+
+async function removeUploadedPhoto(path) {
+  if (!path) return;
+
+  const { error } = await sb.storage
+    .from(bucket)
+    .remove([path]);
+
+  if (error) console.error("Erro ao remover foto:", error);
+}
 
 $("productForm").onsubmit = async (event) => {
   event.preventDefault();
 
-  // Guardar o formulário ANTES do await
   const form = event.currentTarget;
-
-  const button = form.querySelector(
-    'button[type="submit"]'
-  );
-
-  if (!sb || !isAdmin) {
-    message("Acesso administrativo necessário.");
-    return;
-  }
-
+  const button = form.querySelector('button[type="submit"]');
   const fields = new FormData(form);
 
-  const name = String(
-    fields.get("name") || ""
-  ).trim();
-
+  const name = String(fields.get("name") || "").trim();
   const price = Number(fields.get("price"));
   const stock = Number(fields.get("stock"));
+  const description =
+    String(fields.get("description") || "").trim();
 
-  const image_url = String(
-    fields.get("image_url") || ""
-  ).trim();
-
-  const description = String(
-    fields.get("description") || ""
-  ).trim();
-
-  // VALIDAR DADOS
-
-  if (!name) {
-    message("Digite o nome do produto.");
-    return;
-  }
-
-  if (!Number.isFinite(price) || price <= 0) {
-    message("Digite um preço válido.");
-    return;
-  }
+  const photo = fields.get("product_photo");
 
   if (
+    !name ||
+    !Number.isFinite(price) ||
+    price <= 0 ||
     !Number.isInteger(stock) ||
     stock < 0
   ) {
-    message("Digite um estoque válido.");
+    alert("Confira o nome, preço e estoque.");
     return;
   }
 
-  const product = {
-    name,
-    price,
-    stock,
-    image_url: image_url || null,
-    description,
-    active: true
-  };
+  let uploaded = null;
+  let productSaved = false;
 
   button.disabled = true;
-  button.textContent = "Salvando produto...";
 
   try {
-    const { error } = await sb
-      .from("products")
-      .insert(product);
-
-    if (error) {
-      console.error(error);
-      message(
-        "Erro ao cadastrar: " + error.message
-      );
-      return;
+    if (!isAdmin || !user) {
+      throw new Error("Faça login como administrador.");
     }
 
-    // CORREÇÃO DO ERRO ORIGINAL
+    if (photo instanceof File && photo.size > 0) {
+      button.textContent = "Enviando foto...";
+      uploaded = await uploadPhoto(photo);
+    }
+
+    button.textContent = "Salvando produto...";
+
+    const { error } = await sb.from("products").insert({
+      name,
+      price,
+      stock,
+      description,
+      image_url: uploaded?.url || null,
+      active: true
+    });
+
+    if (error) throw error;
+
+    productSaved = true;
+
     form.reset();
 
     await loadProducts();
 
-    message("Produto cadastrado com sucesso!");
+    alert("Produto cadastrado com sucesso!");
   } catch (error) {
     console.error(error);
 
-    message(
-      "Erro de conexão ao cadastrar o produto."
-    );
+    if (uploaded && !productSaved) {
+      await removeUploadedPhoto(uploaded.path);
+    }
+
+    alert("Erro: " + error.message);
   } finally {
     button.disabled = false;
     button.textContent = "Adicionar produto";
   }
 };
 
-// CARREGAR DADOS
-
-async function load() {
-  await Promise.all([
-    loadProducts(),
-    loadOrders()
-  ]);
-}
-
-// CARREGAR PRODUTOS
-
 async function loadProducts() {
-  if (!sb || !isAdmin) return;
-
-  const container = $("products");
-
-  container.textContent = "Carregando produtos...";
-
   const { data, error } = await sb
     .from("products")
     .select("*")
-    .order("created_at", {
-      ascending: false
-    });
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(error);
-
-    container.textContent =
-      "Erro ao carregar produtos: " + error.message;
-
+    $("products").textContent = error.message;
     return;
   }
 
-  if (!data || data.length === 0) {
-    container.innerHTML =
-      '<p class="muted">Nenhum produto cadastrado.</p>';
-    return;
-  }
-
-  container.innerHTML = data.map((product) => `
+  $("products").innerHTML = (data || []).map((p) => `
     <div class="admin-row">
-
       <div>
-        <b>${escapeHTML(product.name)}</b>
-
+        <b>${escapeHTML(p.name)}</b>
         <small>
-          ${money(product.price)}
-          • Estoque: ${Number(product.stock)}
-          • ${product.active ? "Ativo" : "Oculto"}
+          ${money(p.price)}
+          • Estoque: ${p.stock}
+          • ${p.active ? "Ativo" : "Oculto"}
         </small>
       </div>
 
       <button
-        type="button"
         class="btn"
-        data-edit="${escapeHTML(product.id)}"
-      >
-        Editar
-      </button>
+        data-edit="${p.id}"
+        type="button"
+      >Editar</button>
 
       <button
-        type="button"
         class="btn"
-        data-toggle="${escapeHTML(product.id)}"
-      >
-        ${product.active ? "Ocultar" : "Ativar"}
-      </button>
+        data-toggle="${p.id}"
+        type="button"
+      >${p.active ? "Ocultar" : "Ativar"}</button>
 
       <button
-        type="button"
         class="danger"
-        data-del="${escapeHTML(product.id)}"
-      >
-        Excluir
-      </button>
-
+        data-delete="${p.id}"
+        type="button"
+      >Excluir</button>
     </div>
-  `).join("");
+  `).join("") ||
+    '<p class="muted">Nenhum produto cadastrado.</p>';
 
-  // EDITAR PRODUTO
-
-  container.querySelectorAll(
-    "[data-edit]"
-  ).forEach((button) => {
-
+  document.querySelectorAll("[data-edit]").forEach((button) => {
     button.onclick = async () => {
-      const product = data.find(
-        (item) => String(item.id) === button.dataset.edit
-      );
+      const p = data.find((item) => item.id === button.dataset.edit);
+      if (!p) return;
 
-      if (!product) return;
-
-      const name = prompt(
-        "Nome do produto:",
-        product.name
-      );
-
+      const name = prompt("Nome do produto:", p.name);
       if (name === null) return;
 
-      const price = prompt(
-        "Preço em reais:",
-        product.price
-      );
-
+      const price = prompt("Preço:", p.price);
       if (price === null) return;
 
-      const stock = prompt(
-        "Quantidade em estoque:",
-        product.stock
-      );
-
+      const stock = prompt("Estoque:", p.stock);
       if (stock === null) return;
-
-      const image_url = prompt(
-        "URL da imagem:",
-        product.image_url || ""
-      );
-
-      if (image_url === null) return;
 
       const description = prompt(
         "Descrição:",
-        product.description || ""
+        p.description || ""
       );
-
       if (description === null) return;
 
       const newPrice = Number(price);
@@ -406,60 +303,21 @@ async function loadProducts() {
         !Number.isInteger(newStock) ||
         newStock < 0
       ) {
-        message(
-          "Confira nome, preço e estoque."
-        );
+        alert("Dados inválidos.");
         return;
       }
 
-      const { error } = await sb
-        .from("products")
+      const { error } = await sb.from("products")
         .update({
           name: name.trim(),
           price: newPrice,
           stock: newStock,
-          image_url: image_url.trim() || null,
           description
         })
-        .eq("id", product.id);
+        .eq("id", p.id);
 
       if (error) {
-        message(
-          "Erro ao editar: " + error.message
-        );
-        return;
-      }
-
-      message("Produto atualizado!");
-
-      await loadProducts();
-    };
-  });
-
-  // ATIVAR OU OCULTAR
-
-  container.querySelectorAll(
-    "[data-toggle]"
-  ).forEach((button) => {
-
-    button.onclick = async () => {
-      const product = data.find(
-        (item) => String(item.id) === button.dataset.toggle
-      );
-
-      if (!product) return;
-
-      const { error } = await sb
-        .from("products")
-        .update({
-          active: !product.active
-        })
-        .eq("id", product.id);
-
-      if (error) {
-        message(
-          "Erro ao alterar produto: " + error.message
-        );
+        alert("Erro: " + error.message);
         return;
       }
 
@@ -467,110 +325,76 @@ async function loadProducts() {
     };
   });
 
-  // EXCLUIR PRODUTO
-
-  container.querySelectorAll(
-    "[data-del]"
-  ).forEach((button) => {
-
+  document.querySelectorAll("[data-toggle]").forEach((button) => {
     button.onclick = async () => {
-      const confirmed = confirm(
-        "Tem certeza que deseja excluir este produto?"
-      );
+      const p = data.find((item) => item.id === button.dataset.toggle);
+      if (!p) return;
 
-      if (!confirmed) return;
+      const { error } = await sb.from("products")
+        .update({ active: !p.active })
+        .eq("id", p.id);
 
-      const { error } = await sb
-        .from("products")
+      if (error) {
+        alert("Erro: " + error.message);
+        return;
+      }
+
+      await loadProducts();
+    };
+  });
+
+  document.querySelectorAll("[data-delete]").forEach((button) => {
+    button.onclick = async () => {
+      if (!confirm("Deseja excluir este produto?")) return;
+
+      const { error } = await sb.from("products")
         .delete()
-        .eq("id", button.dataset.del);
+        .eq("id", button.dataset.delete);
 
       if (error) {
-        message(
-          "Erro ao excluir: " + error.message
-        );
+        alert("Erro: " + error.message);
         return;
       }
-
-      message("Produto excluído!");
 
       await loadProducts();
     };
   });
 }
 
-// CARREGAR PEDIDOS
-
 async function loadOrders() {
-  if (!sb || !isAdmin) return;
-
-  const container = $("orders");
-
-  container.textContent = "Carregando pedidos...";
-
   const { data, error } = await sb
     .from("orders")
-    .select(
-      "id,customer_name,total,status,created_at"
-    )
-    .order("created_at", {
-      ascending: false
-    })
+    .select("id,customer_name,total,status,created_at")
+    .order("created_at", { ascending: false })
     .limit(50);
 
   if (error) {
-    console.error(error);
-
-    container.textContent =
-      "Erro ao carregar pedidos: " + error.message;
-
+    $("orders").textContent = error.message;
     return;
   }
 
-  if (!data || data.length === 0) {
-    container.innerHTML =
-      '<p class="muted">Nenhum pedido ainda.</p>';
-    return;
-  }
-
-  container.innerHTML = data.map((order) => {
-
-    const status =
-      order.status === "paid"
-        ? "PAGO"
-        : order.status === "pending"
-          ? "AGUARDANDO"
-          : "CANCELADO";
-
-    const date = new Date(
-      order.created_at
-    ).toLocaleString("pt-BR");
-
-    return `
-      <div class="admin-row">
-
-        <div>
-          <b>
-            Pedido ${escapeHTML(
-              String(order.id).slice(0, 8)
-            )}
-          </b>
-
-          <small>
-            ${escapeHTML(order.customer_name)}
-            • ${money(order.total)}
-            • ${escapeHTML(date)}
-          </small>
-        </div>
-
-        <strong>
-          ${status}
-        </strong>
-
+  $("orders").innerHTML = (data || []).map((order) => `
+    <div class="admin-row">
+      <div>
+        <b>Pedido ${escapeHTML(order.id.slice(0, 8))}</b>
+        <small>
+          ${escapeHTML(order.customer_name)}
+          • ${money(order.total)}
+          • ${new Date(order.created_at).toLocaleString("pt-BR")}
+        </small>
       </div>
-    `;
-  }).join("");
+      <b>
+        ${
+          order.status === "paid"
+            ? "PAGO"
+            : order.status === "pending"
+              ? "AGUARDANDO"
+              : "CANCELADO"
+        }
+      </b>
+    </div>
+  `).join("") ||
+    '<p class="muted">Nenhum pedido ainda.</p>';
 }
 
-// INICIAR
 init();
